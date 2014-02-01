@@ -1,0 +1,75 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import subprocess
+import sys
+import urlparse
+
+
+# http://www.postgresql.org/docs/9.3/static/reference-client.html
+VALID_COMMANDS = (
+    'clusterdb',
+    'createdb',
+    'createlang',
+    'createuser',
+    'dropdb',
+    'droplang',
+    'dropuser',
+    'ecpg',
+    'pg_basebackup',
+    'pg_config',
+    'pg_dump',
+    'pg_dumpall',
+    'pg_isready',
+    'pg_receivexlog',
+    'pg_restore',
+    'psql',
+    'reindexdb',
+    'vacuumdb',
+)
+
+
+def get_uri(env='DATABASE_URL'):
+    """Grab and parse the url from the environment."""
+    return urlparse.urlparse(os.environ.get(env))
+
+
+def connect_bits(meta):
+    """Turn the url into connection bits."""
+    bits = []
+    if meta.username:
+        bits.extend(['-U', meta.username])
+    if meta.hostname:
+        bits.extend(['-h', meta.hostname])
+    if meta.port:
+        bits.extend(['-p', str(meta.port)])
+    return bits
+
+
+def pg_command(command, meta):
+    """Construct the command."""
+    bits = []
+    # password as environment varariable
+    if meta.password:
+        bits.append('PGPASSWORD=%s' % meta.password)
+    # command to run
+    bits.append(command)
+    # connection params
+    bits.extend(connect_bits(meta))
+    # database name
+    bits.append(meta.path[1:])
+    # outtahere
+    return bits
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        exit(u'Must give a command like psql, createdb, dropdb')
+    if sys.argv[1] not in VALID_COMMANDS:
+        exit(u'"%s" is not a known postgres command' % sys.argv[1])
+
+    tokens = pg_command(sys.argv[1], get_uri())
+    # pass any other flags the user set along
+    tokens.extend(sys.argv[2:])
+    subprocess.call(tokens)

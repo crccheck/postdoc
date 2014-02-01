@@ -68,7 +68,7 @@ def pg_command(command, meta):
     return bits
 
 
-if __name__ == '__main__':
+def main():
     if len(sys.argv) < 2:
         exit('Must give a command like psql, createdb, dropdb')
     if sys.argv[1] not in VALID_COMMANDS:
@@ -78,3 +78,7 @@ if __name__ == '__main__':
     # pass any other flags the user set along
     tokens.extend(sys.argv[2:])
     subprocess.call(tokens)
+
+
+if __name__ == '__main__':
+    main()

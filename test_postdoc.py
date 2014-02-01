@@ -63,6 +63,20 @@ class PHDTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 postdoc.main()
 
+    def test_main_exits_with_missing_env(self):
+        mock_subprocess = mock.MagicMock()
+        mock_pg_command = mock.MagicMock(return_value=['pg_command'])
+        mock_sys = mock.MagicMock()
+        mock_sys.argv = ['argv1', 'psql', 'argv3', 'argv4']
+
+        with mock.patch.multiple(postdoc,
+            subprocess=mock_subprocess,
+            pg_command=mock_pg_command,
+            sys=mock_sys,
+        ):
+            with self.assertRaises(SystemExit):
+                postdoc.main()
+
     def test_main_appends_additional_flags(self):
         mock_subprocess = mock.MagicMock()
         mock_pg_command = mock.MagicMock(return_value=['pg_command'])

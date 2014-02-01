@@ -78,7 +78,12 @@ def main():
             '  ERROR: "%s" is not a known postgres command' % sys.argv[1]
         )
 
-    tokens = pg_command(sys.argv[1], get_uri())
+    try:
+        tokens = pg_command(sys.argv[1], get_uri())
+    except AttributeError:
+        exit('Usage: phd COMMAND [additional-options]\n\n'
+            '  ERROR: DATABASE_URL is not set'
+        )
     # pass any other flags the user set along
     tokens.extend(sys.argv[2:])
     subprocess.call(tokens)

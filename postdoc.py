@@ -37,7 +37,8 @@ VALID_COMMANDS = (
 
 def get_uri(env='DATABASE_URL'):
     """Grab and parse the url from the environment."""
-    return urlparse(os.environ.get(env))
+    # trick python3's urlparse into raising an exception
+    return urlparse(os.environ.get(env, 1337))
 
 
 def connect_bits(meta):

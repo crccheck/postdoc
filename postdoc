@@ -1,10 +1,10 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
 import subprocess
 import sys
-import urlparse
+from urllib.parse import urlparse
 
 
 # http://www.postgresql.org/docs/9.3/static/reference-client.html
@@ -32,7 +32,7 @@ VALID_COMMANDS = (
 
 def get_uri(env='DATABASE_URL'):
     """Grab and parse the url from the environment."""
-    return urlparse.urlparse(os.environ.get(env))
+    return urlparse(os.environ.get(env))
 
 
 def connect_bits(meta):
@@ -65,9 +65,9 @@ def pg_command(command, meta):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        exit(u'Must give a command like psql, createdb, dropdb')
+        exit('Must give a command like psql, createdb, dropdb')
     if sys.argv[1] not in VALID_COMMANDS:
-        exit(u'"%s" is not a known postgres command' % sys.argv[1])
+        exit('"%s" is not a known postgres command' % sys.argv[1])
 
     tokens = pg_command(sys.argv[1], get_uri())
     # pass any other flags the user set along

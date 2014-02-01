@@ -16,6 +16,10 @@ setup(
         ],
     },
     license='Apache',
+    tests_require = [
+        'mock==1.0.1',
+    ],
+    test_suite='test_postdoc',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',

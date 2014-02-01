@@ -3,6 +3,8 @@ PostDoc
 
 A helper for Postgres + Docker that works for free
 
+.. image:: https://travis-ci.org/crccheck/postdoc.png?branch=master
+    :target: https://travis-ci.org/crccheck/postdoc
 
 About
 -----

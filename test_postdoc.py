@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python3
 
-import unittest
+try:
+    # for python 2.6 compatibility
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import mock
 
@@ -74,7 +77,6 @@ class PHDTest(unittest.TestCase):
             sys=mock_sys,
         ):
             postdoc.main()
-            print mock_subprocess.call
             mock_subprocess.call.assert_called_once_with(
                     ['pg_command', 'argv3', 'argv4'])
 

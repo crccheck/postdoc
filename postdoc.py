@@ -70,9 +70,13 @@ def pg_command(command, meta):
 
 def main():
     if len(sys.argv) < 2:
-        exit('Must give a command like psql, createdb, dropdb')
+        exit('Usage: phd COMMAND [additional-options]\n\n'
+            '  ERROR: Must give a COMMAND like psql, createdb, dropdb'
+        )
     if sys.argv[1] not in VALID_COMMANDS:
-        exit('"%s" is not a known postgres command' % sys.argv[1])
+        exit('Usage: phd COMMAND [additional-options]\n\n'
+            '  ERROR: "%s" is not a known postgres command' % sys.argv[1]
+        )
 
     tokens = pg_command(sys.argv[1], get_uri())
     # pass any other flags the user set along

@@ -1,10 +1,15 @@
-#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import os
 import subprocess
 import sys
-from urllib.parse import urlparse
+try:
+    # Python 3
+    from urllib.parse import urlparse
+except ImportError:
+    # Python 2
+    from urlparse import urlparse
 
 
 # http://www.postgresql.org/docs/9.3/static/reference-client.html

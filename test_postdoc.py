@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 try:
     # for python 2.6 compatibility
     import unittest2 as unittest
@@ -78,14 +79,38 @@ class PHDTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 postdoc.main()
 
+    def test_main_passes_password_in_env(self):
+        my_password = 'oops'
+        meta = type('mock', (object, ),
+                {'password': my_password})
+        self.assertNotIn('DATABASE_URL', os.environ,
+            msg="Re-run tests in an environment without DATABASE_URL")
+        mock_subprocess = mock.MagicMock()
+        mock_pg_command = mock.MagicMock(return_value=['pg_command'])
+        mock_get_uri = mock.MagicMock(return_value=meta)
+        mock_sys = mock.MagicMock()
+        mock_sys.argv = ['foo', 'psql']
+
+        with mock.patch.multiple(
+            postdoc,
+            subprocess=mock_subprocess,
+            pg_command=mock_pg_command,
+            get_uri=mock_get_uri,
+            sys=mock_sys,
+        ):
+            postdoc.main()
+        self.assertEqual(
+            mock_subprocess.call.call_args[1]['env']['PGPASSWORD'],
+            my_password)
+
     def test_main_appends_additional_flags(self):
+        self.assertNotIn('DATABASE_URL', os.environ,
+            msg="Re-run tests in an environment without DATABASE_URL")
         mock_subprocess = mock.MagicMock()
         mock_pg_command = mock.MagicMock(return_value=['pg_command'])
         mock_get_uri = mock.MagicMock()
         mock_sys = mock.MagicMock()
         mock_sys.argv = ['argv1', 'psql', 'argv3', 'argv4']
-        import os
-        self.assertNotIn('DATABASE_URL', os.environ)  # sanity check
 
         with mock.patch.multiple(
             postdoc,

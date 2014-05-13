@@ -56,9 +56,6 @@ def connect_bits(meta):
 def pg_command(command, meta):
     """Construct the command."""
     bits = []
-    # password as environment varariable
-    if meta.password:
-        bits.append('PGPASSWORD=%s' % meta.password)
     # command to run
     bits.append(command)
     # connection params
@@ -72,22 +69,24 @@ def pg_command(command, meta):
 def main():
     if len(sys.argv) < 2:
         exit('Usage: phd COMMAND [additional-options]\n\n'
-            '  ERROR: Must give a COMMAND like psql, createdb, dropdb'
-        )
+            '  ERROR: Must give a COMMAND like psql, createdb, dropdb')
     if sys.argv[1] not in VALID_COMMANDS:
         exit('Usage: phd COMMAND [additional-options]\n\n'
-            '  ERROR: "%s" is not a known postgres command' % sys.argv[1]
-        )
+            '  ERROR: "%s" is not a known postgres command' % sys.argv[1])
 
     try:
-        tokens = pg_command(sys.argv[1], get_uri())
+        meta = get_uri()
+        tokens = pg_command(sys.argv[1], meta)
     except AttributeError:
         exit('Usage: phd COMMAND [additional-options]\n\n'
-            '  ERROR: DATABASE_URL is not set'
-        )
+            '  ERROR: DATABASE_URL is not set')
+    env = os.environ.copy()
+    # password as environment varariable
+    if meta.password:
+        env['PGPASSWORD'] = meta.password
     # pass any other flags the user set along
     tokens.extend(sys.argv[2:])
-    subprocess.call(tokens)
+    subprocess.call(tokens, env=env)  # TODO test that PGPASS is in env
 
 
 if __name__ == '__main__':

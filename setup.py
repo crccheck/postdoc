@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='postdoc',
-    version='0.1.2',
+    version='0.1.3',
     description='A helper for Postgres + Docker that works for free',
     long_description=open('README.rst').read(),
     author='Chris Chang',
@@ -16,7 +16,7 @@ setup(
         ],
     },
     license='Apache',
-    tests_require = [
+    tests_require=[
         'mock==1.0.1',
     ],
     test_suite='test_postdoc',

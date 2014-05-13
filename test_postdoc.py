@@ -42,14 +42,14 @@ class PHDTest(unittest.TestCase):
             self.assertEqual(postdoc.pg_command('foo', meta),
                     ['foo', 'lol', 'database'])
 
-    def test_pg_command_prepends_password(self):
+    def test_pg_command_ignores_password(self):
         meta = type('mock', (object, ),
                 {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
                 'path': '/database'})
         with mock.patch('postdoc.connect_bits') as mock_bits:
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.pg_command('bar', meta),
-                    ['PGPASSWORD=oops', 'bar', 'rofl', 'database'])
+                    ['bar', 'rofl', 'database'])
 
     def test_main_exits_with_no_command(self):
         with mock.patch('postdoc.sys') as mock_sys:
@@ -69,7 +69,8 @@ class PHDTest(unittest.TestCase):
         mock_sys = mock.MagicMock()
         mock_sys.argv = ['argv1', 'psql', 'argv3', 'argv4']
 
-        with mock.patch.multiple(postdoc,
+        with mock.patch.multiple(
+            postdoc,
             subprocess=mock_subprocess,
             pg_command=mock_pg_command,
             sys=mock_sys,
@@ -80,19 +81,24 @@ class PHDTest(unittest.TestCase):
     def test_main_appends_additional_flags(self):
         mock_subprocess = mock.MagicMock()
         mock_pg_command = mock.MagicMock(return_value=['pg_command'])
+        mock_get_uri = mock.MagicMock()
         mock_sys = mock.MagicMock()
         mock_sys.argv = ['argv1', 'psql', 'argv3', 'argv4']
-        mock_get_uri = mock.MagicMock()
+        import os
+        self.assertNotIn('DATABASE_URL', os.environ)  # sanity check
 
-        with mock.patch.multiple(postdoc,
+        with mock.patch.multiple(
+            postdoc,
             subprocess=mock_subprocess,
             pg_command=mock_pg_command,
             get_uri=mock_get_uri,
             sys=mock_sys,
         ):
             postdoc.main()
-            mock_subprocess.call.assert_called_once_with(
-                    ['pg_command', 'argv3', 'argv4'])
+            self.assertEqual(
+                mock_subprocess.call.call_args[0][0],
+                ['pg_command', 'argv3', 'argv4']
+            )
 
 
 if __name__ == '__main__':

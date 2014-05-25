@@ -52,6 +52,15 @@ class PHDTest(unittest.TestCase):
             self.assertEqual(postdoc.pg_command('bar', meta),
                     ['bar', 'rofl', 'database'])
 
+    def test_pg_command_special_syntax_for_pg_restore(self):
+        meta = type('mock', (object, ),
+                {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
+                'path': '/database'})
+        with mock.patch('postdoc.connect_bits') as mock_bits:
+            mock_bits.return_value = ['rofl']
+            self.assertEqual(postdoc.pg_command('pg_restore', meta),
+                    ['pg_restore', 'rofl', '--dbname', 'database'])
+
     def test_main_exits_with_no_command(self):
         with mock.patch('postdoc.sys') as mock_sys:
             mock_sys.argv = ['phd']

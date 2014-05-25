@@ -61,6 +61,8 @@ def pg_command(command, meta):
     # connection params
     bits.extend(connect_bits(meta))
     # database name
+    if command == 'pg_restore':
+        bits.append('--dbname')
     bits.append(meta.path[1:])
     # outtahere
     return bits

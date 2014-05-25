@@ -86,6 +86,7 @@ def main():
         env['PGPASSWORD'] = meta.password
     # pass any other flags the user set along
     tokens.extend(sys.argv[2:])
+    sys.stdout.write(' '.join(tokens) + '\n')
     subprocess.call(tokens, env=env)  # TODO test that PGPASS is in env
 
 

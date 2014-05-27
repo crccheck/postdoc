@@ -22,11 +22,14 @@ Let's say your environment is like this::
 
 You *could* type::
 
-    createdb -U docker -h 127.0.0.1 elevators
+    $ createdb -U docker -h 127.0.0.1 elevators
+    createdb elevators
 
 Or with ``PostDoc``::
 
-    phd createdb
+    $ phd createdb
+    createdb -U docker -h 127.0.0.1 elevators
+    createdb elevators
 
 Docker doesn't really have anything to do with this. But now that I've been
 using Docker to manage my Postgres databases, I can't use defaults anymore.

@@ -3,6 +3,7 @@ from setuptools import setup
 
 setup(
     name='postdoc',
+    # hey, remember to update postdoc.__version__ too
     version='0.1.3',
     description='A helper for Postgres + Docker that works for free',
     long_description=open('README.rst').read(),

@@ -12,6 +12,8 @@ except ImportError:
     from urlparse import urlparse
 
 
+__version__ = '0.1.3'
+
 # http://www.postgresql.org/docs/9.3/static/reference-client.html
 VALID_COMMANDS = (
     'clusterdb',
@@ -69,7 +71,9 @@ def pg_command(command, meta):
 
 
 def main():
-    if len(sys.argv) < 2:
+    if '--version' in sys.argv:
+        exit('PostDoc {0}'.format(__version__))
+    if '--help' in sys.argv or len(sys.argv) < 2:
         exit('Usage: phd COMMAND [additional-options]\n\n'
             '  ERROR: Must give a COMMAND like psql, createdb, dropdb')
     if sys.argv[1] not in VALID_COMMANDS:

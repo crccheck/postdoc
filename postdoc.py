@@ -12,7 +12,7 @@ except ImportError:
     from urlparse import urlparse
 
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 # http://www.postgresql.org/docs/9.3/static/reference-client.html
 VALID_COMMANDS = (

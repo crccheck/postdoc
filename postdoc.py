@@ -63,7 +63,7 @@ def mysql_connect_bits(meta):
         bits.extend(['-u', meta.username])
     if meta.password:
         # password is one token
-        bits.append('-p{}'.format(meta.password))
+        bits.append('-p{0}'.format(meta.password))
     if meta.hostname:
         bits.extend(['-h', meta.hostname])
     if meta.port:

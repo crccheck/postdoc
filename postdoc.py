@@ -14,6 +14,7 @@ except ImportError:
 
 __version__ = '0.1.4'
 
+# DEPRECATED, too many commands to whitelist now
 # http://www.postgresql.org/docs/9.3/static/reference-client.html
 VALID_COMMANDS = (
     'clusterdb',
@@ -102,9 +103,9 @@ def main():
     if '--help' in sys.argv or len(sys.argv) < 2:
         exit('Usage: phd COMMAND [additional-options]\n\n'
             '  ERROR: Must give a COMMAND like psql, createdb, dropdb')
-    if sys.argv[1] not in VALID_COMMANDS:
-        exit('Usage: phd COMMAND [additional-options]\n\n'
-            '  ERROR: "%s" is not a known postgres command' % sys.argv[1])
+    # if sys.argv[1] not in VALID_COMMANDS:
+    #     exit('Usage: phd COMMAND [additional-options]\n\n'
+    #         '  ERROR: "%s" is not a known postgres command' % sys.argv[1])
 
     try:
         meta = get_uri()

@@ -62,7 +62,8 @@ def mysql_connect_bits(meta):
     if meta.username:
         bits.extend(['-u', meta.username])
     if meta.password:
-        bits.extend(['-p', meta.password])
+        # password is one token
+        bits.append('-p{}'.format(meta.password))
     if meta.hostname:
         bits.extend(['-h', meta.hostname])
     if meta.port:
@@ -92,6 +93,8 @@ def get_command(command, meta):
     # database name
     if command == 'pg_restore':
         bits.append('--dbname')
+    if command == 'mysql':
+        bits.append('--database')
     bits.append(meta.path[1:])
     # outtahere
     return bits
@@ -109,12 +112,14 @@ def main():
 
     try:
         meta = get_uri()
+        # if we need to switch logic based off scheme multiple places, may want
+        # to normalize it at this point
         tokens = get_command(sys.argv[1], meta)
     except AttributeError:
         exit('Usage: phd COMMAND [additional-options]\n\n'
             '  ERROR: DATABASE_URL is not set')
     env = os.environ.copy()
-    # password as environment varariable
+    # password as environment variable, set it for non-postgres schemas anyways
     if meta.password:
         env['PGPASSWORD'] = meta.password
     # pass any other flags the user set along

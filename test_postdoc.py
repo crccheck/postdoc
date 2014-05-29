@@ -38,9 +38,9 @@ class ConnectBitsTest(unittest.TestCase):
             {'scheme': 'mysql', 'username': 'u', 'password': 'p',
             'hostname': 'h', 'port': '3306'})
         result = postdoc.mysql_connect_bits(meta)
-        self.assertEqual(result, ['-u', 'u', '-p', 'p', '-h', 'h', '-P', '3306'])
+        self.assertEqual(result, ['-u', 'u', '-pp', '-h', 'h', '-P', '3306'])
         result = postdoc.connect_bits(meta)
-        self.assertEqual(result, ['-u', 'u', '-p', 'p', '-h', 'h', '-P', '3306'])
+        self.assertEqual(result, ['-u', 'u', '-pp', '-h', 'h', '-P', '3306'])
 
     def test_connect_bits_supported_schemas(self):
         meta = type('mock', (object, ),
@@ -96,6 +96,15 @@ class PHDTest(unittest.TestCase):
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.get_command('pg_restore', meta),
                     ['pg_restore', 'rofl', '--dbname', 'database'])
+
+    def test_get_command_special_syntax_for_mysql(self):
+        meta = type('mock', (object, ),
+            {'scheme': 'mysql', 'username': '', 'hostname': '', 'port': '',
+            'password': 'oops', 'path': '/database'})
+        with mock.patch('postdoc.connect_bits') as mock_bits:
+            mock_bits.return_value = ['rofl']
+            self.assertEqual(postdoc.get_command('mysql', meta),
+                    ['mysql', 'rofl', '--database', 'database'])
 
     def test_main_exits_with_no_command(self):
         with mock.patch('postdoc.sys') as mock_sys:

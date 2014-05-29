@@ -55,6 +55,20 @@ def pg_connect_bits(meta):
     return bits
 
 
+def mysql_connect_bits(meta):
+    """Turn the url into connection bits."""
+    bits = []
+    if meta.username:
+        bits.extend(['-u', meta.username])
+    if meta.password:
+        bits.extend(['-p', meta.password])
+    if meta.hostname:
+        bits.extend(['-h', meta.hostname])
+    if meta.port:
+        bits.extend(['-P', str(meta.port)])
+    return bits
+
+
 def pg_command(command, meta):
     """Construct the command."""
     bits = []

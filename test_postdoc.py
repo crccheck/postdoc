@@ -12,6 +12,32 @@ import mock
 import postdoc
 
 
+class ConnectBitsTest(unittest.TestCase):
+    def test_pg_connect_bits_trivial_case(self):
+        meta = type('mock', (object, ),
+                {'username': '', 'hostname': '', 'port': ''})
+        result = postdoc.pg_connect_bits(meta)
+        self.assertEqual(result, [])
+
+    def test_pg_connect_bits_works(self):
+        meta = type('mock', (object, ),
+                {'username': '1', 'hostname': '2', 'port': 3})
+        result = postdoc.pg_connect_bits(meta)
+        self.assertEqual(result, ['-U', '1', '-h', '2', '-p', '3'])
+
+    def test_mysql_connect_bits_trivial_case(self):
+        meta = type('mock', (object, ),
+                {'username': '', 'password': '', 'hostname': '', 'port': ''})
+        result = postdoc.mysql_connect_bits(meta)
+        self.assertEqual(result, [])
+
+    def test_mysql_connect_bits_works(self):
+        meta = type('mock', (object, ),
+            {'username': 'u', 'password': 'p', 'hostname': 'h', 'port': '3306'})
+        result = postdoc.mysql_connect_bits(meta)
+        self.assertEqual(result, ['-u', 'u', '-p', 'p', '-h', 'h', '-P', '3306'])
+
+
 class PHDTest(unittest.TestCase):
     def test_get_uri(self):
         with mock.patch('postdoc.os') as mock_os:
@@ -21,18 +47,6 @@ class PHDTest(unittest.TestCase):
             }
             self.assertEqual(postdoc.get_uri().path, 'foo')
             self.assertEqual(postdoc.get_uri('FATTYBASE_URL').path, 'bar')
-
-    def test_pg_connect_bits_trivial_case(self):
-        meta = type('mock', (object, ),
-                {'username': '', 'hostname': '', 'port': ''})
-        result = postdoc.pg_connect_bits(meta)
-        self.assertEqual(result, [])
-
-    def test_pg_connect_bits_has_everything(self):
-        meta = type('mock', (object, ),
-                {'username': '1', 'hostname': '2', 'port': 3})
-        result = postdoc.pg_connect_bits(meta)
-        self.assertEqual(result, ['-U', '1', '-h', '2', '-p', '3'])
 
     def test_pg_command_assembles_bits_in_right_order(self):
         meta = type('mock', (object, ),

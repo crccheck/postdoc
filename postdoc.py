@@ -43,7 +43,7 @@ def get_uri(env='DATABASE_URL'):
     return urlparse(os.environ.get(env, 1337))
 
 
-def connect_bits(meta):
+def pg_connect_bits(meta):
     """Turn the url into connection bits."""
     bits = []
     if meta.username:
@@ -61,7 +61,7 @@ def pg_command(command, meta):
     # command to run
     bits.append(command)
     # connection params
-    bits.extend(connect_bits(meta))
+    bits.extend(pg_connect_bits(meta))
     # database name
     if command == 'pg_restore':
         bits.append('--dbname')

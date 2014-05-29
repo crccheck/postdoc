@@ -22,23 +22,23 @@ class PHDTest(unittest.TestCase):
             self.assertEqual(postdoc.get_uri().path, 'foo')
             self.assertEqual(postdoc.get_uri('FATTYBASE_URL').path, 'bar')
 
-    def test_connect_bits_trivial_case(self):
+    def test_pg_connect_bits_trivial_case(self):
         meta = type('mock', (object, ),
                 {'username': '', 'hostname': '', 'port': ''})
-        result = postdoc.connect_bits(meta)
+        result = postdoc.pg_connect_bits(meta)
         self.assertEqual(result, [])
 
-    def test_connect_bits_has_everything(self):
+    def test_pg_connect_bits_has_everything(self):
         meta = type('mock', (object, ),
                 {'username': '1', 'hostname': '2', 'port': 3})
-        result = postdoc.connect_bits(meta)
+        result = postdoc.pg_connect_bits(meta)
         self.assertEqual(result, ['-U', '1', '-h', '2', '-p', '3'])
 
     def test_pg_command_assembles_bits_in_right_order(self):
         meta = type('mock', (object, ),
                 {'username': '', 'hostname': '', 'port': '', 'password': '',
                 'path': '/database'})
-        with mock.patch('postdoc.connect_bits') as mock_bits:
+        with mock.patch('postdoc.pg_connect_bits') as mock_bits:
             mock_bits.return_value = ['lol']
             self.assertEqual(postdoc.pg_command('foo', meta),
                     ['foo', 'lol', 'database'])
@@ -47,7 +47,7 @@ class PHDTest(unittest.TestCase):
         meta = type('mock', (object, ),
                 {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
                 'path': '/database'})
-        with mock.patch('postdoc.connect_bits') as mock_bits:
+        with mock.patch('postdoc.pg_connect_bits') as mock_bits:
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.pg_command('bar', meta),
                     ['bar', 'rofl', 'database'])
@@ -56,7 +56,7 @@ class PHDTest(unittest.TestCase):
         meta = type('mock', (object, ),
                 {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
                 'path': '/database'})
-        with mock.patch('postdoc.connect_bits') as mock_bits:
+        with mock.patch('postdoc.pg_connect_bits') as mock_bits:
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.pg_command('pg_restore', meta),
                     ['pg_restore', 'rofl', '--dbname', 'database'])

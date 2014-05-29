@@ -69,13 +69,25 @@ def mysql_connect_bits(meta):
     return bits
 
 
-def pg_command(command, meta):
+def connect_bits(meta):
+    bit_makers = {
+        'mysql': mysql_connect_bits,
+        'postgres': pg_connect_bits,
+        'postgresql': pg_connect_bits,
+        'postgis': pg_connect_bits,
+    }
+    scheme = getattr(meta, 'scheme', 'postgres')  # default to postgres
+    # TODO raise a better error than KeyError with an unsupported scheme
+    return bit_makers[scheme](meta)
+
+
+def get_command(command, meta):
     """Construct the command."""
     bits = []
     # command to run
     bits.append(command)
     # connection params
-    bits.extend(pg_connect_bits(meta))
+    bits.extend(connect_bits(meta))
     # database name
     if command == 'pg_restore':
         bits.append('--dbname')
@@ -96,7 +108,7 @@ def main():
 
     try:
         meta = get_uri()
-        tokens = pg_command(sys.argv[1], meta)
+        tokens = get_command(sys.argv[1], meta)
     except AttributeError:
         exit('Usage: phd COMMAND [additional-options]\n\n'
             '  ERROR: DATABASE_URL is not set')

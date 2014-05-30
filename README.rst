@@ -34,6 +34,18 @@ Or with ``PostDoc``::
 Docker doesn't really have anything to do with this. But now that I've been
 using Docker to manage my Postgres databases, I can't use defaults anymore.
 
+But wait, there's more!
+
+You can do MySQL stuff too::
+
+    $ phd mysql
+    mysql -u docker -h 127.0.0.1 --database elevators
+    Reading table information for completion of table and column names
+    You can turn off this feature to get a quicker startup with -A
+
+    $ phd mysqlcheck --auto-repair
+    mysqlcheck -u docker -h 127.0.0.1 elevators --auto-repair
+
 
 Installation
 ------------

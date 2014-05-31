@@ -14,6 +14,7 @@ except ImportError:
 
 __version__ = '0.1.4'
 
+# DEPRECATED, too many commands to whitelist now
 # http://www.postgresql.org/docs/9.3/static/reference-client.html
 VALID_COMMANDS = (
     'clusterdb',
@@ -43,7 +44,7 @@ def get_uri(env='DATABASE_URL'):
     return urlparse(os.environ.get(env, 1337))
 
 
-def connect_bits(meta):
+def pg_connect_bits(meta):
     """Turn the url into connection bits."""
     bits = []
     if meta.username:
@@ -55,7 +56,34 @@ def connect_bits(meta):
     return bits
 
 
-def pg_command(command, meta):
+def mysql_connect_bits(meta):
+    """Turn the url into connection bits."""
+    bits = []
+    if meta.username:
+        bits.extend(['-u', meta.username])
+    if meta.password:
+        # password is one token
+        bits.append('-p{0}'.format(meta.password))
+    if meta.hostname:
+        bits.extend(['-h', meta.hostname])
+    if meta.port:
+        bits.extend(['-P', str(meta.port)])
+    return bits
+
+
+def connect_bits(meta):
+    bit_makers = {
+        'mysql': mysql_connect_bits,
+        'postgres': pg_connect_bits,
+        'postgresql': pg_connect_bits,
+        'postgis': pg_connect_bits,
+    }
+    scheme = getattr(meta, 'scheme', 'postgres')  # default to postgres
+    # TODO raise a better error than KeyError with an unsupported scheme
+    return bit_makers[scheme](meta)
+
+
+def get_command(command, meta):
     """Construct the command."""
     bits = []
     # command to run
@@ -65,6 +93,8 @@ def pg_command(command, meta):
     # database name
     if command == 'pg_restore':
         bits.append('--dbname')
+    if command == 'mysql':
+        bits.append('--database')
     bits.append(meta.path[1:])
     # outtahere
     return bits
@@ -76,18 +106,20 @@ def main():
     if '--help' in sys.argv or len(sys.argv) < 2:
         exit('Usage: phd COMMAND [additional-options]\n\n'
             '  ERROR: Must give a COMMAND like psql, createdb, dropdb')
-    if sys.argv[1] not in VALID_COMMANDS:
-        exit('Usage: phd COMMAND [additional-options]\n\n'
-            '  ERROR: "%s" is not a known postgres command' % sys.argv[1])
+    # if sys.argv[1] not in VALID_COMMANDS:
+    #     exit('Usage: phd COMMAND [additional-options]\n\n'
+    #         '  ERROR: "%s" is not a known postgres command' % sys.argv[1])
 
     try:
         meta = get_uri()
-        tokens = pg_command(sys.argv[1], meta)
+        # if we need to switch logic based off scheme multiple places, may want
+        # to normalize it at this point
+        tokens = get_command(sys.argv[1], meta)
     except AttributeError:
         exit('Usage: phd COMMAND [additional-options]\n\n'
             '  ERROR: DATABASE_URL is not set')
     env = os.environ.copy()
-    # password as environment varariable
+    # password as environment variable, set it for non-postgres schemas anyways
     if meta.password:
         env['PGPASSWORD'] = meta.password
     # pass any other flags the user set along

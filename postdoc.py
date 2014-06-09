@@ -110,11 +110,18 @@ def main():
     #     exit('Usage: phd COMMAND [additional-options]\n\n'
     #         '  ERROR: "%s" is not a known postgres command' % sys.argv[1])
 
+    if sys.argv[1].isupper():
+        environ_key = sys.argv[1]
+        args = sys.argv[2:]
+    else:
+        environ_key = 'DATABASE_URL'
+        args = sys.argv[1:]
+
     try:
-        meta = get_uri()
+        meta = get_uri(environ_key)
         # if we need to switch logic based off scheme multiple places, may want
         # to normalize it at this point
-        tokens = get_command(sys.argv[1], meta)
+        tokens = get_command(args[0], meta)
     except AttributeError:
         exit('Usage: phd COMMAND [additional-options]\n\n'
             '  ERROR: DATABASE_URL is not set')
@@ -123,7 +130,7 @@ def main():
     if meta.password:
         env['PGPASSWORD'] = meta.password
     # pass any other flags the user set along
-    tokens.extend(sys.argv[2:])
+    tokens.extend(args[1:])
     sys.stdout.write(' '.join(tokens) + '\n')
     subprocess.call(tokens, env=env)  # TODO test that PGPASS is in env
 

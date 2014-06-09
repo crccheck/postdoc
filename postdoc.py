@@ -132,7 +132,10 @@ def main():
     # pass any other flags the user set along
     tokens.extend(args[1:])
     sys.stderr.write(' '.join(tokens) + '\n')
-    subprocess.call(tokens, env=env)  # TODO test that PGPASS is in env
+    try:
+        subprocess.call(tokens, env=env)
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == '__main__':

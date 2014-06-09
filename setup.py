@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name='postdoc',
     # hey, remember to update postdoc.__version__ too
-    version='0.1.4',
+    version='0.2.0',
     description='A helper for Postgres + Docker that works for free',
     long_description=open('README.rst').read(),
     author='Chris Chang',
@@ -22,7 +22,7 @@ setup(
     ],
     test_suite='test_postdoc',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',

@@ -46,6 +46,11 @@ You can do MySQL stuff too::
     $ phd mysqlcheck --auto-repair
     mysqlcheck -u docker -h 127.0.0.1 elevators --auto-repair
 
+If your database url isn't `DATABASE_URL`, you can connect to it by making it
+the first argument::
+
+    $ phd FATTYBASE_URL psql
+
 
 Installation
 ------------

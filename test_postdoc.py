@@ -133,6 +133,25 @@ class PHDTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 postdoc.main()
 
+    def test_main_can_use_alternate_url(self):
+        mock_subprocess = mock.MagicMock()
+        mock_sys = mock.MagicMock(
+            argv=['argv1', 'FATTYBASE_URL', 'psql', 'extra_arg'],
+        )
+        mock_os = mock.MagicMock(environ={
+            'FATTYBASE_URL': 'postgis://u@h/test',
+        })
+
+        with mock.patch.multiple(
+            postdoc,
+            subprocess=mock_subprocess,
+            sys=mock_sys,
+            os=mock_os,
+        ):
+            postdoc.main()
+            self.assertEqual(mock_subprocess.call.call_args[0][0],
+                ['psql', '-U', 'u', '-h', 'h', 'test', 'extra_arg'])
+
     def test_main_passes_password_in_env(self):
         my_password = 'oops'
         meta = type('mock', (object, ),

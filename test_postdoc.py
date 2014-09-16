@@ -198,6 +198,20 @@ class PHDTest(unittest.TestCase):
                 ['get_command', 'argv3', 'argv4']
             )
 
+    def test_nonsense_command_has_meaningful_error(self):
+        mock_os = mock.MagicMock(environ={
+            'DATABASE_URL': 'postgis://u@h/test',
+        })
+        mock_sys = mock.MagicMock(
+            argv=['phd', 'xyzzy'])
+        with mock.patch.multiple(
+            postdoc,
+            os=mock_os,
+            sys=mock_sys,
+        ):
+            with self.assertRaises(SystemExit):
+                postdoc.main()
+
 
 if __name__ == '__main__':
     unittest.main()

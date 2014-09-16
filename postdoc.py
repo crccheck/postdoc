@@ -135,6 +135,11 @@ def main():
     sys.stderr.write(' '.join(tokens) + '\n')
     try:
         subprocess.call(tokens, env=env)
+    except OSError as e:
+        import errno
+        if e.errno == errno.ENOENT:  # No such file or directory
+            exit('{0}: command not found'.format(args[0]))
+
     except KeyboardInterrupt:
         pass
 

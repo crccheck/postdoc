@@ -153,7 +153,7 @@ class PHDTest(unittest.TestCase):
                 ['psql', '-U', 'u', '-h', 'h', 'test', 'extra_arg'])
 
     def test_main_passes_password_in_env(self):
-        my_password = 'oops'
+        my_password = 'hunter2'
         meta = type('mock', (object, ),
                 {'password': my_password})
         self.assertNotIn('DATABASE_URL', os.environ,

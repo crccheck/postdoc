@@ -12,7 +12,6 @@ except ImportError:
     from urlparse import urlparse
 
 
-__name__ = 'postdoc'
 __version__ = '0.2.0'
 
 # DEPRECATED, too many commands to whitelist now
@@ -142,7 +141,6 @@ def main():
 
     except KeyboardInterrupt:
         pass
-
 
 if __name__ == '__main__':
     main()

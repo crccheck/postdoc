@@ -153,7 +153,7 @@ class PHDTest(unittest.TestCase):
                 ['psql', '-U', 'u', '-h', 'h', 'test', 'extra_arg'])
 
     def test_main_passes_password_in_env(self):
-        my_password = 'oops'
+        my_password = 'hunter2'
         meta = type('mock', (object, ),
                 {'password': my_password})
         self.assertNotIn('DATABASE_URL', os.environ,
@@ -197,6 +197,20 @@ class PHDTest(unittest.TestCase):
                 mock_subprocess.call.call_args[0][0],
                 ['get_command', 'argv3', 'argv4']
             )
+
+    def test_nonsense_command_has_meaningful_error(self):
+        mock_os = mock.MagicMock(environ={
+            'DATABASE_URL': 'postgis://u@h/test',
+        })
+        mock_sys = mock.MagicMock(
+            argv=['phd', 'xyzzy'])
+        with mock.patch.multiple(
+            postdoc,
+            os=mock_os,
+            sys=mock_sys,
+        ):
+            with self.assertRaises(SystemExit):
+                postdoc.main()
 
 
 if __name__ == '__main__':

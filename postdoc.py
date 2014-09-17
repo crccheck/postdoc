@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import os
 import subprocess
@@ -12,7 +12,6 @@ except ImportError:
     from urlparse import urlparse
 
 
-__name__ = 'postdoc'
 __version__ = '0.2.0'
 
 # DEPRECATED, too many commands to whitelist now
@@ -135,9 +134,13 @@ def main():
     sys.stderr.write(' '.join(tokens) + '\n')
     try:
         subprocess.call(tokens, env=env)
+    except OSError as e:
+        import errno
+        if e.errno == errno.ENOENT:  # No such file or directory
+            exit('{0}: command not found'.format(args[0]))
+
     except KeyboardInterrupt:
         pass
-
 
 if __name__ == '__main__':
     main()

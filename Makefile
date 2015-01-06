@@ -1,3 +1,6 @@
+APP=postdoc
+
+
 clean:
 	find . -name "*.pyc" -delete
 	find . -name ".DS_Store" -delete
@@ -15,3 +18,9 @@ test:
 # Well, this is dangerous. And I'm not sure if it's really a 'build'.
 build:
 	python setup.py sdist upload
+
+
+# makes it easier to test setup.py's entry points
+install:
+	-pip uninstall $(APP) --yes
+	pip install .

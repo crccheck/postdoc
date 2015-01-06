@@ -88,6 +88,17 @@ class PHDTest(unittest.TestCase):
             self.assertEqual(postdoc.get_command('bar', meta),
                     ['bar', 'rofl', 'database'])
 
+    def test_get_commands_can_ignore_database_name(self):
+        meta = type('mock', (object, ),
+            {'scheme': 'mysql', 'username': 'u', 'hostname': 'h', 'port': '',
+            'password': 'oops', 'path': '/database'})
+        result = postdoc.get_command('mysqladmin', meta)
+        # assert database name is not an argument
+        self.assertNotIn('database', result)
+        # sanity check the connect args are still passed
+        self.assertEqual(result,
+            ['mysqladmin', '-u', 'u', '-poops', '-h', 'h'])
+
     def test_get_command_special_syntax_for_pg_restore(self):
         meta = type('mock', (object, ),
                 {'username': '', 'hostname': '', 'port': '', 'password': 'oops',

@@ -91,6 +91,9 @@ def get_command(command, meta):
     # connection params
     bits.extend(connect_bits(meta))
     # database name
+    if command == 'mysqladmin':
+        # these commands shouldn't take a database name
+        return bits
     if command == 'pg_restore':
         bits.append('--dbname')
     if command == 'mysql':

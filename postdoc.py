@@ -124,7 +124,7 @@ def main():
         tokens = get_command(args[0], meta)
     except AttributeError:
         exit('Usage: phd COMMAND [additional-options]\n\n'
-            '  ERROR: DATABASE_URL is not set')
+            '  ERROR: "{0}" is not set in the environment'.format(environ_key))
     env = os.environ.copy()
     # password as environment variable, set it for non-postgres schemas anyways
     if meta.password:

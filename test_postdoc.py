@@ -117,51 +117,64 @@ class PHDTest(unittest.TestCase):
             self.assertEqual(postdoc.get_command('mysql', meta),
                     ['mysql', 'rofl', '--database', 'database'])
 
-    def test_main_exits_with_no_command(self):
-        with mock.patch('postdoc.sys') as mock_sys:
-            mock_sys.argv = ['phd']
-            with self.assertRaises(SystemExit):
-                postdoc.main()
+    def test_make_tokens_and_env_exits_with_bad_command(self):
+        with self.assertRaises(SystemExit):
+            postdoc.make_tokens_and_env(['phd', 'fun'])
 
-    def test_main_exits_with_bad_command(self):
-        with mock.patch('postdoc.sys') as mock_sys:
-            mock_sys.argv = ['phd', 'fun']
-            with self.assertRaises(SystemExit):
-                postdoc.main()
-
-    def test_main_exits_with_missing_env(self):
-        mock_subprocess = mock.MagicMock()
+    def test_make_tokens_and_env_exits_with_missing_env(self):
         mock_get_command = mock.MagicMock(return_value=['get_command'])
-        mock_sys = mock.MagicMock()
-        mock_sys.argv = ['argv1', 'psql', 'argv3', 'argv4']
 
         with mock.patch.multiple(
             postdoc,
-            subprocess=mock_subprocess,
             get_command=mock_get_command,
-            sys=mock_sys,
         ):
             with self.assertRaises(SystemExit):
-                postdoc.main()
+                postdoc.make_tokens_and_env(['argv1', 'psql', 'argv3', 'argv4'])
 
-    def test_main_can_use_alternate_url(self):
-        mock_subprocess = mock.MagicMock()
-        mock_sys = mock.MagicMock(
-            argv=['argv1', 'FATTYBASE_URL', 'psql', 'extra_arg'],
-        )
+    def test_make_tokens_and_env_can_use_alternate_url(self):
         mock_os = mock.MagicMock(environ={
             'FATTYBASE_URL': 'postgis://u@h/test',
         })
 
         with mock.patch.multiple(
             postdoc,
-            subprocess=mock_subprocess,
-            sys=mock_sys,
             os=mock_os,
         ):
-            postdoc.main()
-            self.assertEqual(mock_subprocess.call.call_args[0][0],
+            tokens, env = postdoc.make_tokens_and_env(
+                ['argv1', 'FATTYBASE_URL', 'psql', 'extra_arg'])
+            self.assertEqual(tokens,
                 ['psql', '-U', 'u', '-h', 'h', 'test', 'extra_arg'])
+
+    # INTEGRATION TESTING AROUND main() #
+
+    def test_main_exits_with_no_command(self):
+        # TODO verify we exited for the right reason
+        mock_sys = mock.MagicMock(argv=['phd'])
+        with mock.patch.multiple(
+            postdoc,
+            sys=mock_sys,
+        ):
+            with self.assertRaises(SystemExit):
+                postdoc.main()
+
+    def test_main_can_do_a_dry_run_to_stdout(self):
+        self.assertNotIn('DATABASE_URL', os.environ,
+            msg="Re-run tests in an environment without DATABASE_URL")
+        mock_subprocess = mock.MagicMock()
+        mock_get_command = mock.MagicMock(return_value=['get_command'])
+        mock_get_uri = mock.MagicMock()
+        mock_sys = mock.MagicMock(argv=['phd', 'psql', '--postdoc-dry-run'])
+
+        with mock.patch.multiple(
+            postdoc,
+            subprocess=mock_subprocess,
+            get_command=mock_get_command,
+            get_uri=mock_get_uri,
+            sys=mock_sys,
+        ):
+            with self.assertRaises(SystemExit):
+                postdoc.main()
+        self.assertEqual(mock_sys.stdout.write.call_args[0][0], 'get_command\n')
 
     def test_main_passes_password_in_env(self):
         my_password = 'hunter2'

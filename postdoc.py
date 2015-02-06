@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Usage: phd COMMAND [options] [command options]
+
+  COMMAND  A command like psql, createdb, dropdb
+
+Options:
+
+  --postdoc-dry-run  Print output and then exit.
+"""
 
 import os
 import subprocess
@@ -103,22 +112,18 @@ def get_command(command, meta):
     return bits
 
 
-def main():
-    if '--version' in sys.argv:
-        exit('PostDoc {0}'.format(__version__))
-    if '--help' in sys.argv or len(sys.argv) < 2:
-        exit('Usage: phd COMMAND [additional-options]\n\n'
-            '  ERROR: Must give a COMMAND like psql, createdb, dropdb')
-    # if sys.argv[1] not in VALID_COMMANDS:
+def make_tokens_and_env(sys_argv):
+    """Get the tokens or quit with help."""
+    # if sys_argv[1] not in VALID_COMMANDS:
     #     exit('Usage: phd COMMAND [additional-options]\n\n'
-    #         '  ERROR: "%s" is not a known postgres command' % sys.argv[1])
+    #         '  ERROR: "%s" is not a known postgres command' % sys_argv[1])
 
-    if sys.argv[1].isupper():
-        environ_key = sys.argv[1]
-        args = sys.argv[2:]
+    if sys_argv[1].isupper():
+        environ_key = sys_argv[1]
+        args = sys_argv[2:]
     else:
         environ_key = 'DATABASE_URL'
-        args = sys.argv[1:]
+        args = sys_argv[1:]
 
     try:
         meta = get_uri(environ_key)
@@ -134,16 +139,33 @@ def main():
         env['PGPASSWORD'] = meta.password
     # pass any other flags the user set along
     tokens.extend(args[1:])
+    return tokens, env
+
+
+def main():
+    if '--version' in sys.argv:
+        exit('PostDoc {0}'.format(__version__))
+    if '--help' in sys.argv or len(sys.argv) < 2:
+        exit(__doc__)
+    is_dry_run = '--postdoc-dry-run' in sys.argv
+    if is_dry_run:
+        sys.argv.remove('--postdoc-dry-run')
+
+    tokens, env = make_tokens_and_env(sys.argv)
+    if is_dry_run:
+        sys.stdout.write(' '.join(tokens) + '\n')
+        exit(0)
+
     sys.stderr.write(' '.join(tokens) + '\n')
     try:
         subprocess.call(tokens, env=env)
     except OSError as e:
         import errno
         if e.errno == errno.ENOENT:  # No such file or directory
-            exit('{0}: command not found'.format(args[0]))
-
+            exit('{0}: command not found'.format(tokens[0]))
     except KeyboardInterrupt:
         pass
+
 
 if __name__ == '__main__':
     main()

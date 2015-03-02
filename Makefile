@@ -1,5 +1,5 @@
 APP=postdoc
-VERSION=0.3.0
+VERSION=0.4.0
 
 
 clean:
@@ -26,6 +26,7 @@ version:
 #
 # 1. bump version number at the top of this file
 # 2. `make release`
+# 3. `git push origin master --tags`
 release: clean version
 	@git commit -am "bump version to v$(VERSION)"
 	@git tag v$(VERSION)

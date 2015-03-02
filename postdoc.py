@@ -8,6 +8,7 @@ Usage: phd COMMAND [options] [command options]
 Options:
 
   --postdoc-dry-run  Print output and then exit.
+  --postdoc-quiet    Don't print debugging output.
 """
 
 import os
@@ -150,13 +151,16 @@ def main():
     is_dry_run = '--postdoc-dry-run' in sys.argv
     if is_dry_run:
         sys.argv.remove('--postdoc-dry-run')
+    is_quiet = '--postdoc-quiet' in sys.argv
+    if is_quiet:
+        sys.argv.remove('--postdoc-quiet')
 
     tokens, env = make_tokens_and_env(sys.argv)
     if is_dry_run:
         sys.stdout.write(' '.join(tokens) + '\n')
         exit(0)
-
-    sys.stderr.write(' '.join(tokens) + '\n')
+    if not is_quiet:
+        sys.stderr.write(' '.join(tokens) + '\n')
     try:
         subprocess.call(tokens, env=env)
     except OSError as e:

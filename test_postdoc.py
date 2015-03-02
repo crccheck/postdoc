@@ -163,6 +163,24 @@ class PHDTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 postdoc.main()
 
+    def test_main_works(self):
+        mock_subprocess = mock.MagicMock()
+        # to avoid having to patch os.environ
+        mock_get_command = mock.MagicMock(return_value=['get_command'])
+        mock_get_uri = mock.MagicMock()
+        mock_sys = mock.MagicMock(argv=['phd', 'psql'])
+
+        with mock.patch.multiple(
+            postdoc,
+            subprocess=mock_subprocess,
+            get_command=mock_get_command,
+            get_uri=mock_get_uri,
+            sys=mock_sys,
+        ):
+            postdoc.main()
+        self.assertEqual(mock_subprocess.call.call_args[0][0], ['get_command'])
+        self.assertEqual(mock_sys.stderr.write.call_args[0][0], 'get_command\n')
+
     def test_main_can_do_a_dry_run_to_stdout(self):
         mock_subprocess = mock.MagicMock()
         mock_get_command = mock.MagicMock(return_value=['get_command'])
@@ -180,6 +198,23 @@ class PHDTest(unittest.TestCase):
                 postdoc.main()
         self.assertEqual(mock_sys.stdout.write.call_args[0][0], 'get_command\n')
 
+    def test_main_command_debug_can_be_quiet(self):
+        mock_subprocess = mock.MagicMock()
+        mock_get_command = mock.MagicMock(return_value=['get_command'])
+        mock_get_uri = mock.MagicMock()
+        mock_sys = mock.MagicMock(argv=['phd', 'psql', '--postdoc-quiet'])
+
+        with mock.patch.multiple(
+            postdoc,
+            subprocess=mock_subprocess,
+            get_command=mock_get_command,
+            get_uri=mock_get_uri,
+            sys=mock_sys,
+        ):
+            postdoc.main()
+        self.assertEqual(mock_subprocess.call.call_args[0][0], ['get_command'])
+        self.assertFalse(mock_sys.stderr.write.called)
+
     def test_main_passes_password_in_env(self):
         my_password = 'hunter2'
         meta = type('mock', (object, ),
@@ -187,8 +222,7 @@ class PHDTest(unittest.TestCase):
         mock_subprocess = mock.MagicMock()
         mock_get_command = mock.MagicMock(return_value=['get_command'])
         mock_get_uri = mock.MagicMock(return_value=meta)
-        mock_sys = mock.MagicMock()
-        mock_sys.argv = ['foo', 'psql']
+        mock_sys = mock.MagicMock(argv=['foo', 'psql'])
 
         with mock.patch.multiple(
             postdoc,
@@ -206,8 +240,7 @@ class PHDTest(unittest.TestCase):
         mock_subprocess = mock.MagicMock()
         mock_get_command = mock.MagicMock(return_value=['get_command'])
         mock_get_uri = mock.MagicMock()
-        mock_sys = mock.MagicMock()
-        mock_sys.argv = ['argv1', 'psql', 'argv3', 'argv4']
+        mock_sys = mock.MagicMock(argv=['argv1', 'psql', 'argv3', 'argv4'])
 
         with mock.patch.multiple(
             postdoc,
@@ -217,17 +250,16 @@ class PHDTest(unittest.TestCase):
             sys=mock_sys,
         ):
             postdoc.main()
-            self.assertEqual(
-                mock_subprocess.call.call_args[0][0],
-                ['get_command', 'argv3', 'argv4']
-            )
+        self.assertEqual(
+            mock_subprocess.call.call_args[0][0],
+            ['get_command', 'argv3', 'argv4']
+        )
 
     def test_nonsense_command_has_meaningful_error(self):
         mock_os = mock.MagicMock(environ={
             'DATABASE_URL': 'postgis://u@h/test',
         })
-        mock_sys = mock.MagicMock(
-            argv=['phd', 'xyzzy'])
+        mock_sys = mock.MagicMock(argv=['phd', 'xyzzy'])
         with mock.patch.multiple(
             postdoc,
             os=mock_os,

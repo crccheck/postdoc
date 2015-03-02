@@ -12,6 +12,12 @@ import mock
 import postdoc
 
 
+# Just a reminder to myself that if I set DATABASE_URL, it will mess up the
+# test suite
+if 'DATABASE_URL' in os.environ:
+    exit('Re-run tests in an environment without DATABASE_URL')
+
+
 class ConnectBitsTest(unittest.TestCase):
     def test_pg_connect_bits_trivial_case(self):
         meta = type('mock', (object, ),
@@ -158,8 +164,6 @@ class PHDTest(unittest.TestCase):
                 postdoc.main()
 
     def test_main_can_do_a_dry_run_to_stdout(self):
-        self.assertNotIn('DATABASE_URL', os.environ,
-            msg="Re-run tests in an environment without DATABASE_URL")
         mock_subprocess = mock.MagicMock()
         mock_get_command = mock.MagicMock(return_value=['get_command'])
         mock_get_uri = mock.MagicMock()
@@ -180,8 +184,6 @@ class PHDTest(unittest.TestCase):
         my_password = 'hunter2'
         meta = type('mock', (object, ),
                 {'password': my_password})
-        self.assertNotIn('DATABASE_URL', os.environ,
-            msg="Re-run tests in an environment without DATABASE_URL")
         mock_subprocess = mock.MagicMock()
         mock_get_command = mock.MagicMock(return_value=['get_command'])
         mock_get_uri = mock.MagicMock(return_value=meta)
@@ -201,8 +203,6 @@ class PHDTest(unittest.TestCase):
             my_password)
 
     def test_main_appends_additional_flags(self):
-        self.assertNotIn('DATABASE_URL', os.environ,
-            msg="Re-run tests in an environment without DATABASE_URL")
         mock_subprocess = mock.MagicMock()
         mock_get_command = mock.MagicMock(return_value=['get_command'])
         mock_get_uri = mock.MagicMock()

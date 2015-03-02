@@ -16,18 +16,20 @@ test:
 	python setup.py test
 
 
+# Set the version. Done this way to avoid fancy, brittle Python import magic
+version:
+	@sed -i -r /version/s/[0-9.]+/$(VERSION)/ setup.py
+	@sed -i -r /__version__\ =/s/[0-9.]+/$(VERSION)/ postdoc.py
+
+
 # Release Instructions:
 #
 # 1. bump version number at the top of this file
 # 2. `make release`
-#
-# If this doesn't work, make sure you have wheels installed:
-# pip install wheel
-release:
-	@sed -i -r /version/s/[0-9.]+/$(VERSION)/ setup.py
-	@sed -i -r /version/s/[0-9]+\.[0-9]+\.[0-9]+/$(VERSION)/ postdoc.py
+release: clean version
 	@git commit -am "bump version to v$(VERSION)"
 	@git tag v$(VERSION)
+	@-pip install wheel > /dev/null
 	python setup.py sdist bdist_wheel upload
 
 

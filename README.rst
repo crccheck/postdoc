@@ -49,7 +49,9 @@ You can do MySQL stuff too::
 If your database url isn't `DATABASE_URL`, you can connect to it by making it
 the first argument::
 
+    $ export FATTYBASE_URL=postgres://fatty@fat/phat
     $ phd FATTYBASE_URL psql
+    psql -U fatty -h fat phat
 
 
 Installation
@@ -60,7 +62,18 @@ Install with pip::
     pip install postdoc
 
 
+Extras
+------
 
+Add the flag `--postdoc-dry-run` to just print the command.
+
+Add the flag `--postdoc-quiet` to execute the command without printing the
+debugging line.
+
+Aliases::
+
+    alias dphd="phd --postdoc-dry-run"
+    alias qphd="phd --postdoc-quiet"
 
 
 

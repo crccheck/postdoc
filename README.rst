@@ -67,9 +67,13 @@ Extras
 
 Add the flag `--postdoc-dry-run` to just print the command.
 
-As an alias::
+Add the flag `--postdoc-quiet` to execute the command without printing the
+debugging line.
+
+Aliases::
 
     alias dphd="phd --postdoc-dry-run"
+    alias qphd="phd --postdoc-quiet"
 
 
 

@@ -2,7 +2,10 @@ APP=postdoc
 VERSION=0.4.0
 
 
-clean:
+help: ## Shows this help
+	@echo "$$(grep -h '#\{2\}' $(MAKEFILE_LIST) | sed 's/: #\{2\} /	/' | column -t -s '	')"
+
+clean: ## Clean project
 	find . -name "*.pyc" -delete
 	find . -name ".DS_Store" -delete
 	rm -rf *.egg
@@ -11,16 +14,12 @@ clean:
 	rm -rf build
 	rm -rf dist
 
-
-test:
+test: ## Run test suite
 	python setup.py test
 
-
-# Set the version. Done this way to avoid fancy, brittle Python import magic
-version:
+version: ## Set version number
 	@sed -i -r /version/s/[0-9.]+/$(VERSION)/ setup.py
 	@sed -i -r /__version__\ =/s/[0-9.]+/$(VERSION)/ postdoc.py
-
 
 # Release Instructions:
 #
@@ -33,8 +32,6 @@ release: clean version
 	@-pip install wheel > /dev/null
 	python setup.py sdist bdist_wheel upload
 
-
-# makes it easier to test setup.py's entry points
-install:
+install: ## Install (makes it easier to test setup.py's entry points)
 	-pip uninstall $(APP) --yes
 	pip install .

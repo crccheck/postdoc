@@ -24,29 +24,6 @@ except ImportError:
 
 __version__ = '0.4.0'
 
-# DEPRECATED, too many commands to whitelist now
-# http://www.postgresql.org/docs/9.3/static/reference-client.html
-VALID_COMMANDS = (
-    'clusterdb',
-    'createdb',
-    'createlang',
-    'createuser',
-    'dropdb',
-    'droplang',
-    'dropuser',
-    'ecpg',
-    'pg_basebackup',
-    'pg_config',
-    'pg_dump',
-    'pg_dumpall',
-    'pg_isready',
-    'pg_receivexlog',
-    'pg_restore',
-    'psql',
-    'reindexdb',
-    'vacuumdb',
-)
-
 
 def get_uri(env='DATABASE_URL'):
     """Grab and parse the url from the environment."""
@@ -115,10 +92,6 @@ def get_command(command, meta):
 
 def make_tokens_and_env(sys_argv):
     """Get the tokens or quit with help."""
-    # if sys_argv[1] not in VALID_COMMANDS:
-    #     exit('Usage: phd COMMAND [additional-options]\n\n'
-    #         '  ERROR: "%s" is not a known postgres command' % sys_argv[1])
-
     if sys_argv[1].isupper():
         environ_key = sys_argv[1]
         args = sys_argv[2:]
@@ -133,7 +106,7 @@ def make_tokens_and_env(sys_argv):
         tokens = get_command(args[0], meta)
     except AttributeError:
         exit('Usage: phd COMMAND [additional-options]\n\n'
-            '  ERROR: "{0}" is not set in the environment'.format(environ_key))
+             '  ERROR: "{0}" is not set in the environment'.format(environ_key))
     env = os.environ.copy()
     # password as environment variable, set it for non-postgres schemas anyways
     if meta.password:

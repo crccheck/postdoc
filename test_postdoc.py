@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-try:
-    # for python 2.6 compatibility
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 import mock
 
@@ -21,13 +17,13 @@ if 'DATABASE_URL' in os.environ:
 class ConnectBitsTest(unittest.TestCase):
     def test_pg_connect_bits_trivial_case(self):
         meta = type('mock', (object, ),
-                {'username': '', 'hostname': '', 'port': ''})
+                    {'username': '', 'hostname': '', 'port': ''})
         result = postdoc.pg_connect_bits(meta)
         self.assertEqual(result, [])
 
     def test_pg_connect_bits_works(self):
         meta = type('mock', (object, ),
-            {'scheme': 'postgres', 'username': '1', 'hostname': '2', 'port': 3})
+                    {'scheme': 'postgres', 'username': '1', 'hostname': '2', 'port': 3})
         result = postdoc.pg_connect_bits(meta)
         self.assertEqual(result, ['-U', '1', '-h', '2', '-p', '3'])
         result = postdoc.connect_bits(meta)
@@ -35,14 +31,14 @@ class ConnectBitsTest(unittest.TestCase):
 
     def test_mysql_connect_bits_trivial_case(self):
         meta = type('mock', (object, ),
-                {'username': '', 'password': '', 'hostname': '', 'port': ''})
+                    {'username': '', 'password': '', 'hostname': '', 'port': ''})
         result = postdoc.mysql_connect_bits(meta)
         self.assertEqual(result, [])
 
     def test_mysql_connect_bits_works(self):
         meta = type('mock', (object, ),
-            {'scheme': 'mysql', 'username': 'u', 'password': 'p',
-            'hostname': 'h', 'port': '3306'})
+                    {'scheme': 'mysql', 'username': 'u', 'password': 'p',
+                    'hostname': 'h', 'port': '3306'})
         result = postdoc.mysql_connect_bits(meta)
         self.assertEqual(result, ['-u', 'u', '-pp', '-h', 'h', '-P', '3306'])
         result = postdoc.connect_bits(meta)
@@ -50,7 +46,7 @@ class ConnectBitsTest(unittest.TestCase):
 
     def test_connect_bits_supported_schemas(self):
         meta = type('mock', (object, ),
-            {'username': '', 'password': '', 'hostname': 'h', 'port': ''})
+                    {'username': '', 'password': '', 'hostname': 'h', 'port': ''})
 
         # assert defaults to postgres
         self.assertTrue(postdoc.connect_bits(meta))
@@ -78,50 +74,50 @@ class PHDTest(unittest.TestCase):
 
     def test_get_command_assembles_bits_in_right_order(self):
         meta = type('mock', (object, ),
-                {'username': '', 'hostname': '', 'port': '', 'password': '',
-                'path': '/database'})
+                    {'username': '', 'hostname': '', 'port': '', 'password': '',
+                    'path': '/database'})
         with mock.patch('postdoc.pg_connect_bits') as mock_bits:
             mock_bits.return_value = ['lol']
             self.assertEqual(postdoc.get_command('foo', meta),
-                    ['foo', 'lol', 'database'])
+                             ['foo', 'lol', 'database'])
 
     def test_get_command_ignores_password(self):
         meta = type('mock', (object, ),
-                {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
-                'path': '/database'})
+                    {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
+                    'path': '/database'})
         with mock.patch('postdoc.pg_connect_bits') as mock_bits:
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.get_command('bar', meta),
-                    ['bar', 'rofl', 'database'])
+                             ['bar', 'rofl', 'database'])
 
     def test_get_commands_can_ignore_database_name(self):
         meta = type('mock', (object, ),
-            {'scheme': 'mysql', 'username': 'u', 'hostname': 'h', 'port': '',
-            'password': 'oops', 'path': '/database'})
+                    {'scheme': 'mysql', 'username': 'u', 'hostname': 'h', 'port': '',
+                    'password': 'oops', 'path': '/database'})
         result = postdoc.get_command('mysqladmin', meta)
         # assert database name is not an argument
         self.assertNotIn('database', result)
         # sanity check the connect args are still passed
         self.assertEqual(result,
-            ['mysqladmin', '-u', 'u', '-poops', '-h', 'h'])
+                         ['mysqladmin', '-u', 'u', '-poops', '-h', 'h'])
 
     def test_get_command_special_syntax_for_pg_restore(self):
         meta = type('mock', (object, ),
-                {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
-                'path': '/database'})
+                    {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
+                    'path': '/database'})
         with mock.patch('postdoc.pg_connect_bits') as mock_bits:
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.get_command('pg_restore', meta),
-                    ['pg_restore', 'rofl', '--dbname', 'database'])
+                             ['pg_restore', 'rofl', '--dbname', 'database'])
 
     def test_get_command_special_syntax_for_mysql(self):
         meta = type('mock', (object, ),
-            {'scheme': 'mysql', 'username': '', 'hostname': '', 'port': '',
-            'password': 'oops', 'path': '/database'})
+                    {'scheme': 'mysql', 'username': '', 'hostname': '', 'port': '',
+                    'password': 'oops', 'path': '/database'})
         with mock.patch('postdoc.connect_bits') as mock_bits:
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.get_command('mysql', meta),
-                    ['mysql', 'rofl', '--database', 'database'])
+                             ['mysql', 'rofl', '--database', 'database'])
 
     def test_make_tokens_and_env_exits_with_bad_command(self):
         with self.assertRaises(SystemExit):
@@ -149,7 +145,7 @@ class PHDTest(unittest.TestCase):
             tokens, env = postdoc.make_tokens_and_env(
                 ['argv1', 'FATTYBASE_URL', 'psql', 'extra_arg'])
             self.assertEqual(tokens,
-                ['psql', '-U', 'u', '-h', 'h', 'test', 'extra_arg'])
+                             ['psql', '-U', 'u', '-h', 'h', 'test', 'extra_arg'])
 
     # INTEGRATION TESTING AROUND main() #
 
@@ -218,7 +214,7 @@ class PHDTest(unittest.TestCase):
     def test_main_passes_password_in_env(self):
         my_password = 'hunter2'
         meta = type('mock', (object, ),
-                {'password': my_password})
+                    {'password': my_password})
         mock_subprocess = mock.MagicMock()
         mock_get_command = mock.MagicMock(return_value=['get_command'])
         mock_get_uri = mock.MagicMock(return_value=meta)

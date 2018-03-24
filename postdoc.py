@@ -25,7 +25,7 @@ except ImportError:
     from urllib import unquote
 
 
-__version__ = '0.4.0'
+__version__ = '1.0.0'
 
 
 def get_uri(env_var='DATABASE_URL'):

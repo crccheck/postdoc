@@ -1,5 +1,5 @@
 APP=postdoc
-VERSION=0.4.0
+VERSION=1.0.0
 
 
 help: ## Shows this help
@@ -27,7 +27,7 @@ version: ## Set version number
 # 2. `make release`
 # 3. `git push origin master --tags`
 release: clean version
-	@git commit -am "bump version to v$(VERSION)"
+	@git commit -am "v$(VERSION)"
 	@git tag v$(VERSION)
 	@-pip install wheel > /dev/null
 	python setup.py sdist bdist_wheel upload

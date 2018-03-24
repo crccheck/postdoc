@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals
 import os
 import unittest
 
@@ -14,86 +14,92 @@ if 'DATABASE_URL' in os.environ:
     exit('Re-run tests in an environment without DATABASE_URL')
 
 
-class ConnectBitsTest(unittest.TestCase):
+class ConnectBitsTests(unittest.TestCase):
     def test_pg_connect_bits_trivial_case(self):
-        meta = type('mock', (object, ),
-                    {'username': '', 'hostname': '', 'port': ''})
+        meta = {'username': '', 'hostname': '', 'port': ''}
         result = postdoc.pg_connect_bits(meta)
         self.assertEqual(result, [])
 
     def test_pg_connect_bits_works(self):
-        meta = type('mock', (object, ),
-                    {'scheme': 'postgres', 'username': '1', 'hostname': '2', 'port': 3})
+        meta = {'scheme': 'postgres', 'username': '1', 'hostname': '2', 'port': 3}
         result = postdoc.pg_connect_bits(meta)
         self.assertEqual(result, ['-U', '1', '-h', '2', '-p', '3'])
         result = postdoc.connect_bits(meta)
         self.assertEqual(result, ['-U', '1', '-h', '2', '-p', '3'])
 
     def test_mysql_connect_bits_trivial_case(self):
-        meta = type('mock', (object, ),
-                    {'username': '', 'password': '', 'hostname': '', 'port': ''})
+        meta = {'username': '', 'password': '', 'hostname': '', 'port': ''}
         result = postdoc.mysql_connect_bits(meta)
         self.assertEqual(result, [])
 
     def test_mysql_connect_bits_works(self):
-        meta = type('mock', (object, ),
-                    {'scheme': 'mysql', 'username': 'u', 'password': 'p',
-                    'hostname': 'h', 'port': '3306'})
+        meta = {'scheme': 'mysql', 'username': 'u', 'password': 'p',
+                'hostname': 'h', 'port': '3306'}
         result = postdoc.mysql_connect_bits(meta)
         self.assertEqual(result, ['-u', 'u', '-pp', '-h', 'h', '-P', '3306'])
         result = postdoc.connect_bits(meta)
         self.assertEqual(result, ['-u', 'u', '-pp', '-h', 'h', '-P', '3306'])
 
     def test_connect_bits_supported_schemas(self):
-        meta = type('mock', (object, ),
-                    {'username': '', 'password': '', 'hostname': 'h', 'port': ''})
+        meta = {'username': '', 'password': '', 'hostname': 'h', 'port': ''}
 
         # assert defaults to postgres
         self.assertTrue(postdoc.connect_bits(meta))
-        meta.scheme = 'mysql'
+        meta['scheme'] = 'mysql'
         self.assertTrue(postdoc.connect_bits(meta))
-        meta.scheme = 'postgres'
+        meta['scheme'] = 'postgres'
         self.assertTrue(postdoc.connect_bits(meta))
-        meta.scheme = 'postgresql'
+        meta['scheme'] = 'postgresql'
         self.assertTrue(postdoc.connect_bits(meta))
-        meta.scheme = 'postgis'
+        meta['scheme'] = 'postgis'
         self.assertTrue(postdoc.connect_bits(meta))
-        meta.scheme = 'foo'
+        meta['scheme'] = 'foo'
         self.assertRaises(KeyError, postdoc.connect_bits, meta)
 
 
-class PHDTest(unittest.TestCase):
+class PHDTests(unittest.TestCase):
     def test_get_uri(self):
         with mock.patch('postdoc.os') as mock_os:
             mock_os.environ = {
                 'DATABASE_URL': 'foo',
                 'FATTYBASE_URL': 'bar',
             }
-            self.assertEqual(postdoc.get_uri().path, 'foo')
-            self.assertEqual(postdoc.get_uri('FATTYBASE_URL').path, 'bar')
+            self.assertEqual(postdoc.get_uri()['path'], 'foo')
+            self.assertEqual(postdoc.get_uri('FATTYBASE_URL')['path'], 'bar')
+
+    def test_get_uri_decodes_urlencoded(self):
+        with mock.patch('postdoc.os') as mock_os:
+            mock_os.environ = {
+                'DATABASE_URL': 'mysql://user%3F:%21mysecure%3Apassword%23@127.0.0.1:3307/foo',
+            }
+            self.assertEqual(postdoc.get_uri(), {
+                'scheme': 'mysql',
+                'username': 'user?',
+                'password': '!mysecure:password#',
+                'hostname': '127.0.0.1',
+                'port': 3307,
+                'path': '/foo',
+            })
 
     def test_get_command_assembles_bits_in_right_order(self):
-        meta = type('mock', (object, ),
-                    {'username': '', 'hostname': '', 'port': '', 'password': '',
-                    'path': '/database'})
+        meta = {'username': '', 'hostname': '', 'port': '', 'password': '',
+                'path': '/database'}
         with mock.patch('postdoc.pg_connect_bits') as mock_bits:
             mock_bits.return_value = ['lol']
             self.assertEqual(postdoc.get_command('foo', meta),
                              ['foo', 'lol', 'database'])
 
     def test_get_command_ignores_password(self):
-        meta = type('mock', (object, ),
-                    {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
-                    'path': '/database'})
+        meta = {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
+                'path': '/database'}
         with mock.patch('postdoc.pg_connect_bits') as mock_bits:
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.get_command('bar', meta),
                              ['bar', 'rofl', 'database'])
 
     def test_get_commands_can_ignore_database_name(self):
-        meta = type('mock', (object, ),
-                    {'scheme': 'mysql', 'username': 'u', 'hostname': 'h', 'port': '',
-                    'password': 'oops', 'path': '/database'})
+        meta = {'scheme': 'mysql', 'username': 'u', 'hostname': 'h', 'port': '',
+                'password': 'oops', 'path': '/database'}
         result = postdoc.get_command('mysqladmin', meta)
         # assert database name is not an argument
         self.assertNotIn('database', result)
@@ -102,22 +108,47 @@ class PHDTest(unittest.TestCase):
                          ['mysqladmin', '-u', 'u', '-poops', '-h', 'h'])
 
     def test_get_command_special_syntax_for_pg_restore(self):
-        meta = type('mock', (object, ),
-                    {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
-                    'path': '/database'})
+        meta = {'username': '', 'hostname': '', 'port': '', 'password': 'oops',
+                'path': '/database'}
         with mock.patch('postdoc.pg_connect_bits') as mock_bits:
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.get_command('pg_restore', meta),
                              ['pg_restore', 'rofl', '--dbname', 'database'])
 
     def test_get_command_special_syntax_for_mysql(self):
-        meta = type('mock', (object, ),
-                    {'scheme': 'mysql', 'username': '', 'hostname': '', 'port': '',
-                    'password': 'oops', 'path': '/database'})
+        meta = {'scheme': 'mysql', 'username': '', 'hostname': '', 'port': '',
+                'password': 'oops', 'path': '/database'}
         with mock.patch('postdoc.connect_bits') as mock_bits:
             mock_bits.return_value = ['rofl']
             self.assertEqual(postdoc.get_command('mysql', meta),
                              ['mysql', 'rofl', '--database', 'database'])
+
+    def test_make_tokens_and_env_happy_case(self):
+        mock_os = mock.MagicMock(environ={
+            'DATABASE_URL': 'mysql://u:p@h:3306/test',
+        })
+
+        with mock.patch.multiple(postdoc, os=mock_os):
+            tokens, env = postdoc.make_tokens_and_env(
+                ['argv1', 'mysql', 'extra_arg'])
+            self.assertEqual(
+                tokens,
+                ['mysql', '-u', 'u', '-pp', '-h', 'h', '-P', '3306', '--database', 'test', 'extra_arg']
+            )
+
+    @unittest.skip('TODO')
+    def test_make_tokens_and_env_handles_urlencoded_password(self):
+        mock_os = mock.MagicMock(environ={
+            'DATABASE_URL': 'mysql://u:%21mysecure%3Apassword%23@h/test',
+        })
+
+        with mock.patch.multiple(postdoc, os=mock_os):
+            tokens, env = postdoc.make_tokens_and_env(
+                ['argv1', 'mysql', 'extra_arg'])
+            self.assertEqual(
+                tokens,
+                ['mysql', '-u', 'u', '-p!mysecure:password#', '-h', 'h', '--database', 'test', 'extra_arg']
+            )
 
     def test_make_tokens_and_env_exits_with_bad_command(self):
         with self.assertRaises(SystemExit):
@@ -213,8 +244,7 @@ class PHDTest(unittest.TestCase):
 
     def test_main_passes_password_in_env(self):
         my_password = 'hunter2'
-        meta = type('mock', (object, ),
-                    {'password': my_password})
+        meta = {'password': my_password}
         mock_subprocess = mock.MagicMock()
         mock_get_command = mock.MagicMock(return_value=['get_command'])
         mock_get_uri = mock.MagicMock(return_value=meta)

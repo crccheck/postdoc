@@ -1,6 +1,7 @@
 .env
 *.egg
 *.egg-info/
+*.eggs
 *.pyc
 __pycache__
 build/

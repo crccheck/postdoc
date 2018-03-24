@@ -11,50 +11,64 @@ Options:
   --postdoc-quiet    Don't print debugging output.
 """
 
+from __future__ import unicode_literals
 import os
 import subprocess
 import sys
 try:
     # Python 3
     from urllib.parse import urlparse
+    from urllib.parse import unquote
 except ImportError:
     # Python 2
     from urlparse import urlparse
+    from urllib import unquote
 
 
 __version__ = '0.4.0'
 
 
-def get_uri(env='DATABASE_URL'):
+def get_uri(env_var='DATABASE_URL'):
     """Grab and parse the url from the environment."""
-    # trick python3's urlparse into raising an exception
-    return urlparse(os.environ.get(env, 1337))
+    parsed_result = urlparse(
+        # Trick python3's urlparse into raising when env var is missing
+        os.environ.get(env_var, 1337)
+    )
+    meta = {
+        'scheme': parsed_result.scheme,
+        'username': unquote(parsed_result.username or ''),
+        'password': unquote(parsed_result.password or ''),
+        'hostname': parsed_result.hostname,
+        'port': parsed_result.port,
+        'path': unquote(parsed_result.path or '/'),
+    }
+    return meta
 
 
 def pg_connect_bits(meta):
     """Turn the url into connection bits."""
     bits = []
-    if meta.username:
-        bits.extend(['-U', meta.username])
-    if meta.hostname:
-        bits.extend(['-h', meta.hostname])
-    if meta.port:
-        bits.extend(['-p', str(meta.port)])
+    if meta['username']:
+        bits.extend(['-U', meta['username']])
+    if meta['hostname']:
+        bits.extend(['-h', meta['hostname']])
+    if meta['port']:
+        bits.extend(['-p', str(meta['port'])])
     return bits
 
 
 def mysql_connect_bits(meta):
     """Turn the url into connection bits."""
     bits = []
-    if meta.username:
-        bits.extend(['-u', meta.username])
-    if meta.password:
-        # password is one token
-        bits.append('-p{0}'.format(meta.password))
-    if meta.hostname:
-        bits.extend(['-h', meta.hostname])
-    if meta.port:
-        bits.extend(['-P', str(meta.port)])
+    if meta['username']:
+        bits.extend(['-u', meta['username']])
+    if meta['password']:
+        # `password` is one token for mysql (no whitespace)
+        bits.append('-p{0}'.format(meta['password']))
+    if meta['hostname']:
+        bits.extend(['-h', meta['hostname']])
+    if meta['port']:
+        bits.extend(['-P', str(meta['port'])])
     return bits
 
 
@@ -65,7 +79,7 @@ def connect_bits(meta):
         'postgresql': pg_connect_bits,
         'postgis': pg_connect_bits,
     }
-    scheme = getattr(meta, 'scheme', 'postgres')  # default to postgres
+    scheme = meta.get('scheme', 'postgres')  # Default to postgres
     # TODO raise a better error than KeyError with an unsupported scheme
     return bit_makers[scheme](meta)
 
@@ -85,32 +99,31 @@ def get_command(command, meta):
         bits.append('--dbname')
     if command == 'mysql':
         bits.append('--database')
-    bits.append(meta.path[1:])
-    # outtahere
+    bits.append(meta['path'][1:])
     return bits
 
 
 def make_tokens_and_env(sys_argv):
     """Get the tokens or quit with help."""
     if sys_argv[1].isupper():
-        environ_key = sys_argv[1]
+        env_var = sys_argv[1]
         args = sys_argv[2:]
     else:
-        environ_key = 'DATABASE_URL'
+        env_var = 'DATABASE_URL'
         args = sys_argv[1:]
 
     try:
-        meta = get_uri(environ_key)
+        meta = get_uri(env_var)
         # if we need to switch logic based off scheme multiple places, may want
         # to normalize it at this point
         tokens = get_command(args[0], meta)
     except AttributeError:
         exit('Usage: phd COMMAND [additional-options]\n\n'
-             '  ERROR: "{0}" is not set in the environment'.format(environ_key))
+             '  ERROR: "{0}" is not set in the environment'.format(env_var))
     env = os.environ.copy()
     # password as environment variable, set it for non-postgres schemas anyways
-    if meta.password:
-        env['PGPASSWORD'] = meta.password
+    if meta['password']:
+        env['PGPASSWORD'] = meta['password']
     # pass any other flags the user set along
     tokens.extend(args[1:])
     return tokens, env
